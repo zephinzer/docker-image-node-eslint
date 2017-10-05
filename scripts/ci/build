@@ -55,9 +55,9 @@ printf "CURRENT ESLINT          : ${ESLINT_VERSION}\n";
 COMMIT_MESSAGE=$(git log -n 1 --pretty=format:"%B");
 EXISTENCE_TAG="node-${NODE_VERSION}_yarn-${YARN_VERSION}_eslint-${ESLINT_VERSION}";
 EXISTS=$(${UTILS_DIR}/docker_registry_repo_tags "${REPOSITORY_NAME}");
+printf "$EXISTS" | jq -r '.[]|.name' | grep "${EXISTENCE_TAG}";
 if [[ $? != "0" ]] || [[ $COMMIT_MESSAGE == *"[force build]"* ]]; then
-  printf "[BUILDING] TAG:${EXISTENCE_TAG} was NOT found. Building...\n";
-  docker build -t next -f ${TAG_NAME}.Dockerfile .;
+  printf "[BUILDING] TAG:${EXISTENCE_TAG} was NOT found. Publishing...\n";
   if [[ ${IS_PULL_REQUEST} = "false" ]]; then
     printf "[PUBLISHING] Pushing latest ${TAG_NAME} to ${DOCKER_REGISTRY_URL}...\n";
     docker ${DOCKER_REGISTRY_URL} login -u "${DOCKER_HUB_USERNAME}" -p "${DOCKER_HUB_PASSWORD}";
