@@ -26,6 +26,11 @@ if [[ $? != "0" ]]; then
   ${UTILS_DIR}/error "${SETUP_DIR}/DOCKER_REGISTRY_URL could not be found.";
   exit 1;
 fi;
+DOCKER_HUB_URL="$(cat ${SETUP_DIR}/DOCKER_HUB_URL)";
+if [[ $? != "0" ]]; then
+  ${UTILS_DIR}/error "${SETUP_DIR}/DOCKER_HUB_URL could not be found.";
+  exit 1;
+fi;
 if [[ "$DOCKER_HUB_USERNAME" = "" ]]; then
   ${UTILS_DIR}/error "\$DOCKER_HUB_USERNAME could not be found. Unable to push to a registry.";
   exit 1;
@@ -60,7 +65,7 @@ if [[ $? != "0" ]] || [[ $COMMIT_MESSAGE == *"[force build]"* ]]; then
   printf "[BUILDING] TAG:${EXISTENCE_TAG} was NOT found. Publishing...\n";
   if [[ ${IS_PULL_REQUEST} = "false" ]]; then
     printf "[PUBLISHING] Pushing latest to ${DOCKER_REGISTRY_URL}...\n";
-    docker login -u "${DOCKER_HUB_USERNAME}" -p "${DOCKER_HUB_PASSWORD}";
+    docker login ${DOCKER_HUB_URL} -u "${DOCKER_HUB_USERNAME}" -p "${DOCKER_HUB_PASSWORD}";
     if [[ $? = "0" ]]; then
       printf "PUSHING                 : ${REPOSITORY_NAME}:${ESLINT_VERSION}...\n";
       docker tag ${NEXT_TAG}   ${REPOSITORY_NAME}:${ESLINT_VERSION};
