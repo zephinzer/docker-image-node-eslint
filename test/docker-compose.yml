@@ -1,0 +1,10 @@
+version: "3"
+services:
+  eslinter:
+    build: ../
+    container_name: node_eslint_linter
+    working_dir: /app
+    entrypoint: "/bin/eslint ."
+    volumes:
+      - ./:/app
+  

@@ -1,0 +1,25 @@
+#!/bin/bash
+CURR_DIR=$(dirname $0);
+PROJ_DIR=${CURR_DIR}/../..;
+UTILS_DIR=${CURR_DIR}/../utils;
+CONF_DIR=${PROJ_DIR}/conf.d;
+SETUP_DIR=${PROJ_DIR}/.setup;
+mkdir -p ${SETUP_DIR};
+
+TEMPLATE_DOCKERFILE="${PROJ_DIR}/.Dockerfile";
+OUTPUT_DOCKERFILE="${PROJ_DIR}/Dockerfile";
+
+BASE_IMAGE_NAME=$(${UTILS_DIR}/base_image_name 'zephinzer/alpine-node');
+BASE_IMAGE_NAME_KEY='__BASE_IMAGE_NAME__';
+BASE_IMAGE_NAME_SED="s|${BASE_IMAGE_NAME_KEY}|${BASE_IMAGE_NAME}|g";
+printf "BASE_IMAGE_NAME         : ${BASE_IMAGE_NAME}\n";
+
+BASE_IMAGE_TAG=$(${UTILS_DIR}/base_image_tag '3.4');
+BASE_IMAGE_TAG_KEY='__BASE_IMAGE_TAG__';
+BASE_IMAGE_TAG_SED="s|${BASE_IMAGE_TAG_KEY}|${BASE_IMAGE_TAG}|g";
+printf "BASE_IMAGE_TAG          : ${BASE_IMAGE_TAG}\n";
+
+sed \
+  -e "${BASE_IMAGE_NAME_SED}" \
+  -e "${BASE_IMAGE_TAG_SED}" \
+  "${TEMPLATE_DOCKERFILE}" > "${OUTPUT_DOCKERFILE}";
