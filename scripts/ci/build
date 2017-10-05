@@ -59,19 +59,23 @@ printf "$EXISTS" | jq -r '.[]|.name' | grep "${EXISTENCE_TAG}";
 if [[ $? != "0" ]] || [[ $COMMIT_MESSAGE == *"[force build]"* ]]; then
   printf "[BUILDING] TAG:${EXISTENCE_TAG} was NOT found. Publishing...\n";
   if [[ ${IS_PULL_REQUEST} = "false" ]]; then
-    printf "[PUBLISHING] Pushing latest ${TAG_NAME} to ${DOCKER_REGISTRY_URL}...\n";
+    printf "[PUBLISHING] Pushing latest to ${DOCKER_REGISTRY_URL}...\n";
     docker login ${DOCKER_REGISTRY_URL} -u "${DOCKER_HUB_USERNAME}" -p "${DOCKER_HUB_PASSWORD}";
-    printf "PUSHING                 : ${REPOSITORY_NAME}:${ESLINT_VERSION}...\n";
-    docker tag ${NEXT_TAG}   ${REPOSITORY_NAME}:${ESLINT_VERSION};
-    docker push              ${REPOSITORY_NAME}:${ESLINT_VERSION};
-    printf "PUSHING                 : ${REPOSITORY_NAME}:${EXISTENCE_TAG}...\n";
-    docker tag ${NEXT_TAG}   ${REPOSITORY_NAME}:${EXISTENCE_TAG};
-    docker push              ${REPOSITORY_NAME}:${EXISTENCE_TAG};
-    printf "PUSHING                 : ${REPOSITORY_NAME}:latest...\n";
-    docker tag ${NEXT_TAG}   ${REPOSITORY_NAME}:latest;
-    docker push              ${REPOSITORY_NAME}:latest;
-    printf "DONE                    : $(date +'%Y-%m-%d %H:%M:%S')\n";
-    docker logout;
+    if [[ $? = "0" ]]; then
+      printf "PUSHING                 : ${REPOSITORY_NAME}:${ESLINT_VERSION}...\n";
+      docker tag ${NEXT_TAG}   ${REPOSITORY_NAME}:${ESLINT_VERSION};
+      docker push              ${REPOSITORY_NAME}:${ESLINT_VERSION};
+      printf "PUSHING                 : ${REPOSITORY_NAME}:${EXISTENCE_TAG}...\n";
+      docker tag ${NEXT_TAG}   ${REPOSITORY_NAME}:${EXISTENCE_TAG};
+      docker push              ${REPOSITORY_NAME}:${EXISTENCE_TAG};
+      printf "PUSHING                 : ${REPOSITORY_NAME}:latest...\n";
+      docker tag ${NEXT_TAG}   ${REPOSITORY_NAME}:latest;
+      docker push              ${REPOSITORY_NAME}:latest;
+      printf "DONE                    : $(date +'%Y-%m-%d %H:%M:%S')\n";
+      docker logout;
+    else
+      ${UTILS_DIR}/error "Unable to login to ${DOCKER_REGISTRY_URL}.";
+    fi;
   else
     printf "[SKIPPED PUBLISHING] No further action required.\n";
   fi;
