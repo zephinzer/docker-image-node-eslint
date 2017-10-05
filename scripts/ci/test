@@ -1,0 +1,19 @@
+#!/bin/bash
+CURR_DIR=$(dirname $0);
+PROJ_DIR=${CURR_DIR}/../..;
+UTILS_DIR=${CURR_DIR}/../utils;
+CONF_DIR=${PROJ_DIR}/conf.d;
+SETUP_DIR=${PROJ_DIR}/.setup;
+
+TEST_SUITE_NAME=$1;
+TEST_SUITE_PATH="${PROJ_DIR}/test/${TEST_SUITE_NAME}";
+_=$(stat ${TEST_SUITE_PATH} &>/dev/null);
+if [[ $? != "0" ]]; then
+  ${UTILS_DIR}/error "Test suite at ${TEST_SUITE_PATH} could not be found.";
+fi;
+
+${CURR_DIR}/../build/setup;
+docker-compose -f ${TEST_SUITE_PATH}/docker-compose.yml up --build
+EXIT_CODE=$?;
+${CURR_DIR}/../build/teardown;
+exit ${EXIT_CODE};

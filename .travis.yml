@@ -1,0 +1,28 @@
+sudo: required
+language: bash
+services:
+  - docker
+branches:
+  only:
+    - master
+env:
+  global:
+    - BUILD_VERSION=$(./scripts/versioning/get-next -q)
+notifications:
+  email:
+    - dev@joeir.net
+stages:
+  - build
+  - test
+  - publish
+jobs:
+  include:
+    - stage: build
+      script:
+        - ./scripts/ci/build
+    - stage: test
+      script:
+        - ./scripts/ci/test google
+    - stage: publish
+      script:
+        - ./scripts/ci/publish

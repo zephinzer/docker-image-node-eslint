@@ -1,0 +1,4 @@
+#!/bin/sh
+printf "ESLINT:v$(eslint -v)\n";
+printf "NODE:$(node --version)\n";
+printf "YARN:v$(yarn --version)\n";

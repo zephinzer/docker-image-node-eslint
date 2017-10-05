@@ -1,0 +1,85 @@
+#!/bin/bash
+# script-wide constants
+CURR_DIR=$(dirname $0);
+UTILS_DIR=${CURR_DIR}/../utils;
+PROJ_DIR=${CURR_DIR}/../..;
+SETUP_DIR=${PROJ_DIR}/.setup;
+
+NEXT_TAG='next_node_eslint';
+${CURR_DIR}/../build/setup;
+if [[ $? != "0" ]]; then
+  ${UTILS_DIR}/error "${CURR_DIR}/../build/setup exited with errors.";
+  exit 1;
+fi;
+BUILD_VERSION="$(cat ${SETUP_DIR}/BUILD_VERSION)";
+if [[ $? != "0" ]]; then
+  ${UTILS_DIR}/error "${SETUP_DIR}/BUILD_VERSION could not be found.";
+  exit 1;
+fi;
+REPOSITORY_NAME="$(cat ${SETUP_DIR}/REPOSITORY_NAME)";
+if [[ $? != "0" ]]; then
+  ${UTILS_DIR}/error "${SETUP_DIR}/REPOSITORY_NAME could not be found.";
+  exit 1;
+fi;
+DOCKER_REGISTRY_URL="$(cat ${SETUP_DIR}/DOCKER_REGISTRY_URL)";
+if [[ $? != "0" ]]; then
+  ${UTILS_DIR}/error "${SETUP_DIR}/DOCKER_REGISTRY_URL could not be found.";
+  exit 1;
+fi;
+if [[ "$DOCKER_HUB_USERNAME" = "" ]]; then
+  ${UTILS_DIR}/error "\$DOCKER_HUB_USERNAME could not be found. Unable to push to a registry.";
+  exit 1;
+fi;
+if [[ "$DOCKER_HUB_PASSWORD" = "" ]]; then
+  ${UTILS_DIR}/error "\$DOCKER_HUB_PASSWORD could not be found. Unable to push to a registry.";
+  exit 1;
+fi;
+
+if [[ ${IS_PULL_REQUEST} = "" ]]; then
+  if [[ $TRAVIS_PULL_REQUEST = "false" ]]; then
+    IS_PULL_REQUEST='false';
+  else
+    IS_PULL_REQUEST='true';
+  fi;
+fi;
+
+docker build -f ${PROJ_DIR}/Dockerfile "${PROJ_DIR}" -t ${NEXT_TAG};
+CONTAINER_INFO="$(docker run ${NEXT_TAG})";
+NODE_VERSION="$(printf "${CONTAINER_INFO}" | grep 'NODE' | cut -f 2 -d ':')";
+printf "CURRENT NODE            : ${NODE_VERSION}\n";
+YARN_VERSION="$(printf "${CONTAINER_INFO}" | grep 'YARN' | cut -f 2 -d ':')";
+printf "CURRENT YARN            : ${YARN_VERSION}\n";
+ESLINT_VERSION="$(printf "${CONTAINER_INFO}" | grep 'ESLINT' | cut -f 2 -d ':')";
+printf "CURRENT ESLINT          : ${ESLINT_VERSION}\n";
+
+COMMIT_MESSAGE=$(git log -n 1 --pretty=format:"%B");
+EXISTENCE_TAG="node-${NODE_VERSION}_yarn-${YARN_VERSION}_eslint-${ESLINT_VERSION}";
+EXISTS=$(${UTILS_DIR}/docker_registry_repo_tags "${REPOSITORY_NAME}");
+if [[ $? != "0" ]] || [[ $COMMIT_MESSAGE == *"[force build]"* ]]; then
+  printf "[BUILDING] TAG:${EXISTENCE_TAG} was NOT found. Building...\n";
+  docker build -t next -f ${TAG_NAME}.Dockerfile .;
+  if [[ ${IS_PULL_REQUEST} = "false" ]]; then
+    printf "[PUBLISHING] Pushing latest ${TAG_NAME} to ${DOCKER_REGISTRY_URL}...\n";
+    docker ${DOCKER_REGISTRY_URL} login -u "${DOCKER_HUB_USERNAME}" -p "${DOCKER_HUB_PASSWORD}";
+    printf "PUSHING                 : ${REPOSITORY_NAME}:${ESLINT_VERSION}...\n";
+    docker tag ${NEXT_TAG}   ${REPOSITORY_NAME}:${ESLINT_VERSION};
+    docker push              ${REPOSITORY_NAME}:${ESLINT_VERSION};
+    printf "PUSHING                 : ${REPOSITORY_NAME}:${EXISTENCE_TAG}...\n";
+    docker tag ${NEXT_TAG}   ${REPOSITORY_NAME}:${EXISTENCE_TAG};
+    docker push              ${REPOSITORY_NAME}:${EXISTENCE_TAG};
+    printf "PUSHING                 : ${REPOSITORY_NAME}:latest...\n";
+    docker tag ${NEXT_TAG}   ${REPOSITORY_NAME}:latest;
+    docker push              ${REPOSITORY_NAME}:latest;
+    printf "DONE                    : $(date +'%Y-%m-%d %H:%M:%S')\n";
+    docker logout;
+  else
+    printf "[SKIPPED PUBLISHING] No further action required.\n";
+  fi;
+else
+  printf "[SKIPPED] TAG:${EXISTENCE_TAG} was found. Skipping build...\n";
+fi;
+${CURR_DIR}/../build/teardown;
+if [[ $? != "0" ]]; then
+  ${UTILS_DIR}/error "${CURR_DIR}/../build/teardown exited with errors.";
+  exit 1;
+fi;

@@ -1,4 +1,0 @@
-#!/bin/sh
-eslint -v;
-pwd;
-eslint .
