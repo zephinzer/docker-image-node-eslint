@@ -9,19 +9,12 @@ mkdir -p ${SETUP_DIR};
 TEMPLATE_DOCKERFILE="${PROJ_DIR}/.Dockerfile";
 OUTPUT_DOCKERFILE="${PROJ_DIR}/Dockerfile";
 
-# output build versions
 BUILD_VERSION=$(${UTILS_DIR}/build_version);
 printf "BUILD_VERSION              : $BUILD_VERSION\n";
 
-# output docker registry url
 DOCKER_REGISTRY_URL=$(${UTILS_DIR}/docker_registry_url);
 printf "DOCKER_REGISTRY_URL        : $DOCKER_REGISTRY_URL\n";
 
-# output docker hub url
-DOCKER_HUB_URL=$(${UTILS_DIR}/docker_hub_url);
-printf "DOCKER_HUB_URL        : $DOCKER_HUB_URL\n";
-
-# output repository name
 REPOSITORY_NAME=$(${UTILS_DIR}/repository_name 'zephinzer/node-eslint');
 printf "REPOSITORY_NAME            : $REPOSITORY_NAME\n";
 
