@@ -8,43 +8,38 @@ SETUP_DIR=${PROJ_DIR}/.setup;
 NEXT_TAG='next_node_eslint';
 ${CURR_DIR}/../build/setup;
 if [[ $? != "0" ]]; then
-  ${UTILS_DIR}/error "${CURR_DIR}/../build/setup exited with errors.";
+  ${UTILS_DIR}/utils/error "${CURR_DIR}/../build/setup exited with errors.";
   exit 1;
 fi;
 BUILD_VERSION="$(cat ${SETUP_DIR}/BUILD_VERSION)";
 if [[ $? != "0" ]]; then
-  ${UTILS_DIR}/error "${SETUP_DIR}/BUILD_VERSION could not be found.";
+  ${UTILS_DIR}/utils/error "${SETUP_DIR}/BUILD_VERSION could not be found.";
   exit 1;
 fi;
 REPOSITORY_NAME="$(cat ${SETUP_DIR}/REPOSITORY_NAME)";
 if [[ $? != "0" ]]; then
-  ${UTILS_DIR}/error "${SETUP_DIR}/REPOSITORY_NAME could not be found.";
+  ${UTILS_DIR}/utils/error "${SETUP_DIR}/REPOSITORY_NAME could not be found.";
   exit 1;
 fi;
 DOCKER_REGISTRY_URL="$(cat ${SETUP_DIR}/DOCKER_REGISTRY_URL)";
 if [[ $? != "0" ]]; then
-  ${UTILS_DIR}/error "${SETUP_DIR}/DOCKER_REGISTRY_URL could not be found.";
-  exit 1;
-fi;
-DOCKER_HUB_URL="$(cat ${SETUP_DIR}/DOCKER_HUB_URL)";
-if [[ $? != "0" ]]; then
-  ${UTILS_DIR}/error "${SETUP_DIR}/DOCKER_HUB_URL could not be found.";
+  ${UTILS_DIR}/utils/error "${SETUP_DIR}/DOCKER_REGISTRY_URL could not be found.";
   exit 1;
 fi;
 if [[ "$DOCKER_HUB_USERNAME" = "" ]]; then
-  ${UTILS_DIR}/error "\$DOCKER_HUB_USERNAME could not be found. Unable to push to a registry.";
+  ${UTILS_DIR}/utils/error "\$DOCKER_HUB_USERNAME could not be found. Unable to push to a registry.";
   exit 1;
 fi;
 if [[ "$DOCKER_HUB_PASSWORD" = "" ]]; then
-  ${UTILS_DIR}/error "\$DOCKER_HUB_PASSWORD could not be found. Unable to push to a registry.";
+  ${UTILS_DIR}/utils/error "\$DOCKER_HUB_PASSWORD could not be found. Unable to push to a registry.";
   exit 1;
 fi;
 
 if [[ ${IS_PULL_REQUEST} = "" ]]; then
-  if [[ $TRAVIS_PULL_REQUEST = "false" ]]; then
+  if [[ $TRAVIS_PULL_REQUEST = "" ]]; then
     IS_PULL_REQUEST='false';
   else
-    IS_PULL_REQUEST='true';
+    IS_PULL_REQUEST="${TRAVIS_PULL_REQUEST}";
   fi;
 fi;
 
@@ -65,7 +60,7 @@ if [[ $? != "0" ]] || [[ $COMMIT_MESSAGE == *"[force build]"* ]]; then
   printf "[BUILDING] TAG:${EXISTENCE_TAG} was NOT found. Publishing...\n";
   if [[ ${IS_PULL_REQUEST} = "false" ]]; then
     printf "[PUBLISHING] Pushing latest to ${DOCKER_REGISTRY_URL}...\n";
-    docker login ${DOCKER_HUB_URL} -u "${DOCKER_HUB_USERNAME}" -p "${DOCKER_HUB_PASSWORD}";
+    docker login ${DOCKER_REGISTRY_URL} -u "${DOCKER_HUB_USERNAME}" -p "${DOCKER_HUB_PASSWORD}";
     if [[ $? = "0" ]]; then
       printf "PUSHING                 : ${REPOSITORY_NAME}:${ESLINT_VERSION}...\n";
       docker tag ${NEXT_TAG}   ${REPOSITORY_NAME}:${ESLINT_VERSION};
@@ -79,7 +74,7 @@ if [[ $? != "0" ]] || [[ $COMMIT_MESSAGE == *"[force build]"* ]]; then
       printf "DONE                    : $(date +'%Y-%m-%d %H:%M:%S')\n";
       docker logout;
     else
-      ${UTILS_DIR}/error "Unable to login to ${DOCKER_REGISTRY_URL}.";
+      ${UTILS_DIR}/utils/error "Unable to login to ${DOCKER_REGISTRY_URL}.";
     fi;
   else
     printf "[SKIPPED PUBLISHING] No further action required.\n";
@@ -89,6 +84,6 @@ else
 fi;
 ${CURR_DIR}/../build/teardown;
 if [[ $? != "0" ]]; then
-  ${UTILS_DIR}/error "${CURR_DIR}/../build/teardown exited with errors.";
+  ${UTILS_DIR}/utils/error "${CURR_DIR}/../build/teardown exited with errors.";
   exit 1;
 fi;
