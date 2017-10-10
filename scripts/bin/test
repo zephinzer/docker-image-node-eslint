@@ -1,5 +1,11 @@
 #!/bin/sh
-USE_GLOBAL=$1;
+USE_GLOBAL=0;
+while getopts gl OPT; do
+  case "${OPT}" in
+    g) USE_GLOBAL=1; ;;
+    l) USE_GLOBAL=0; ;;
+  esac;
+done;
 
 _=$(stat $(pwd)/node_modules/.bin/eslint &>/dev/null);
 if [ "$?" -eq "0" ] && [ "${USE_GLOBAL}" -ne "1" ]; then

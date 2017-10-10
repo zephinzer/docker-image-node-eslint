@@ -3,7 +3,7 @@ services:
   eslinter:
     build: ../../
     working_dir: /app
-    entrypoint: "test"
+    entrypoint: ["test", "-g"]
     volumes:
       - ./:/app
   
