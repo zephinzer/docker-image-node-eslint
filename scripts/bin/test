@@ -14,8 +14,10 @@ DEFAULT_GLOBAL_RULES='\
 _=$(stat $(pwd)/node_modules/.bin/eslint &>/dev/null);
 if [ "$?" -eq "0" ] && [ "${USE_GLOBAL}" -ne "1" ]; then
   printf "running \033[1mLOCAL eslint-$($(pwd)/node_modules/.bin/eslint -v)\033[0m in \033[1m$(pwd)\033[0m\n";
+  printf "command: '$(pwd)/node_modules/.bin/eslint $(pwd)'\n";
   $(pwd)/node_modules/.bin/eslint $(pwd);
 else
   printf "running \033[1mGLOBAL eslint-$(eslint -v)\033[0m in \033[1m$(pwd)\033[0m\n";
+  printf "command: 'eslint $(pwd) ${DEFAULT_GLOBAL_RULES}'\n";
   eslint $(pwd) ${DEFAULT_GLOBAL_RULES};
 fi;
